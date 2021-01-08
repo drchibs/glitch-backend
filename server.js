@@ -2,8 +2,11 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const csv = require("csvtojson");
+const axios = require("axios").default;
 const cryptoRandomString = require("crypto-random-string");
 const xss = require("xss-clean");
+const fs = require("fs");
+const http = require("http");
 
 const app = express();
 
@@ -15,18 +18,40 @@ app.use(xss());
 
 const port = 3000;
 
+const downloadRemoteFile = async (url, destination, res) => {
+	try {
+		await axios({
+			method: "get",
+			url: url,
+			responseType: "stream",
+		}).then((response) => {
+			response.data.pipe(fs.createWriteStream(destination));
+		});
+	} catch (err) {
+		res.status(500).json({
+			status: "fail",
+			message: err.message,
+		});
+	}
+};
+
 /**
  * for the lack of a better name for the handler
  * @returns a JSON object containing the data from the csv file in json format and a random identifier
  */
 const doTheWork = async (req, res) => {
 	//get the 2 required params
-	const file = req.body.csv.url;
+	const url = req.body.csv.url;
 	const fields = req.body.csv.select_fields;
-
+	//local file placeholder
+	const file = "./data-files/data.csv";
 	try {
+		//download the file and save to local folder
+		const request = await downloadRemoteFile(url, file, res);
+
 		//csvtojson
-		const json = await csv().fromFile(file);
+		const json = await csv().fromFile("./data.csv");
+
 		//unique identifier
 		const identifier = cryptoRandomString({
 			length: 32,
