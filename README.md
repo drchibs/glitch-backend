@@ -4,6 +4,7 @@ My implementation of the CSV to JSON nodeJS single sever script for Backend - (I
 API is live on Glitch
 Request Url: https://aromatic-rainbow-drifter.glitch.me
 
+API can be tested using the Postman app.
 
 Sample Request:
 {
